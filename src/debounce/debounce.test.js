@@ -8,6 +8,8 @@ describe('debounce', async () => {
     let start;
     let end;
     let count = 0;
+    const controller = new AbortController();
+    const signal = controller.signal;
 
     const logInstrumented = (...args) => {
         end = Date.now();
@@ -24,6 +26,10 @@ describe('debounce', async () => {
         vi.restoreAllMocks();
         //vi.useRealTimers();
     });
+
+    afterAll(() => {
+        controller.abort();
+    })
 
     test(`debounce calls for ${DEBOUNCE_TIMEOUT_100_MS}ms`, async () => {
         const log = debounce(logInstrumented, DEBOUNCE_TIMEOUT_100_MS);
@@ -43,7 +49,7 @@ describe('debounce', async () => {
 
         start = Date.now();
         log("Hello");
-        setInterval(() => {}, 50);
+        setInterval(() => {}, 50, { signal});
         vi.advanceTimersToNextTimer();
         log("Hello 2");
         vi.advanceTimersByTime(DEBOUNCE_TIMEOUT_150_MS); // Logged at t=200ms
